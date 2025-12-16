@@ -1,0 +1,21 @@
+services:
+  api:
+    containter_name: VisionerAPI
+    image: vizioner-api
+    # to-do
+
+  worker:
+    containter_name: VizionerWorker
+    image: vizioner-worker
+    # to-do
+
+  tasker:
+    containter_name: VizionerMemory
+    image: redis/redis:latest
+    # to-do
+
+  content:
+    containter_name: VizionerStorage
+    image: minio/minio:latest
+    # to-do
+
