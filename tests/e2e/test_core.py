@@ -41,7 +41,7 @@ class TestCore:
             logs_file.write("**Logs**\n\n")
         with open(self.logs_file_path, "a") as logs_file:
             subprocess.run(
-                ["docker", "compose", "-f", self._compose_file, "up", "--build", "-d", "generative-ai"],
+                ["docker", "compose", "-f", self._compose_file, "up", "--build", "-d"],
                 stdout=logs_file,
                 stderr=logs_file,
             )
@@ -75,7 +75,7 @@ class TestCore:
                 stderr=logs_file,
             )
         subprocess.run(
-            ["docker", "compose", "-f", self._compose_file, "down", "generative-ai"],
+            ["docker", "compose", "-f", self._compose_file, "down", "-v"],
             cwd=self._cwd,
             stdout=open(os.devnull, "w"),
             stderr=subprocess.STDOUT,
