@@ -18,6 +18,7 @@ class TestImage(TestCore):
     async def test_create_one_with_input_id(self):
         payload = dict(
             input_id=123,
+            model_id="FLUX.1-dev",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
@@ -37,6 +38,7 @@ class TestImage(TestCore):
     async def test_create_one_none_input_id(self):
         payload = dict(
             input_id=None,
+            model_id="FLUX.2-dev",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
@@ -55,6 +57,7 @@ class TestImage(TestCore):
 
     async def test_create_one_misstake_input_id(self):
         payload = dict(
+            model_id="FLUX.1-dev",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
@@ -74,6 +77,7 @@ class TestImage(TestCore):
     async def test_create_several(self):
         payload = dict(
             input_id="0",
+            model_id="FLUX.1-dev",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
