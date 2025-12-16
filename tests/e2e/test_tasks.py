@@ -17,6 +17,7 @@ class TestImage(TestCore):
     async def test_create_one(self):
         payload = dict(
             input_id=123,
+            model_id="FLUX.1-dev",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
