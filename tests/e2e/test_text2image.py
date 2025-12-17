@@ -26,7 +26,7 @@ class TestImage(TestCore):
             num_inference_steps=5,
             guidance_scale=3.5,
         )
-        response = requests.post(f"{self._api_url}/image/create", json=payload)
+        response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
         data = response.json()
         assert "id" in data
@@ -46,7 +46,7 @@ class TestImage(TestCore):
             num_inference_steps=5,
             guidance_scale=3.5,
         )
-        response = requests.post(f"{self._api_url}/image/create", json=payload)
+        response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
         data = response.json()
         assert "id" in data
@@ -65,7 +65,7 @@ class TestImage(TestCore):
             num_inference_steps=5,
             guidance_scale=3.5,
         )
-        response = requests.post(f"{self._api_url}/image/create", json=payload)
+        response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
         data = response.json()
         assert "id" in data
@@ -85,7 +85,7 @@ class TestImage(TestCore):
             num_inference_steps=5,
             guidance_scale=3.5,
         )
-        response = requests.post(f"{self._api_url}/image/create", json=payload)
+        response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
         data = response.json()
         assert "id" in data
@@ -97,7 +97,7 @@ class TestImage(TestCore):
     async def test_status(self):
         task_id = self._tasks[0]
         params = {"task_id": task_id}
-        response = requests.get(f"{self._api_url}/image/status", params=params)
+        response = requests.get(f"{self._api_url}/status", params=params)
         assert 200 == response.status_code
         data = response.json()
         assert "status" in data
@@ -106,7 +106,7 @@ class TestImage(TestCore):
         assert status in {"PENDING", "SUCCESS", "ERROR"}
         timeout_counter = 0
         while status != "SUCCESS":
-            response = requests.get(f"{self._api_url}/image/status", params=params)
+            response = requests.get(f"{self._api_url}/status", params=params)
             data = response.json()
             status = data.get("status")
             sleep(self._sleep)
@@ -118,11 +118,12 @@ class TestImage(TestCore):
     async def test_result(self):
         task_id = self._tasks[0]
         params = {"task_id": task_id}
-        response = requests.get(f"{self._api_url}/image/result", params=params)
+        response = requests.get(f"{self._api_url}/result", params=params)
         assert 200 == response.status_code
-        content = response.content
-        assert isinstance(content, (bytes, bytearray))
-        assert len(content) > 0
+        data = response.json()
+        assert "results" in data
+        results = data.get("results")
+        assert isinstance(results, list)
 
     async def test_delete(self):
         response = requests.get(f"{self._api_url}/tasks")
@@ -131,7 +132,7 @@ class TestImage(TestCore):
         assert set(self._tasks) == set(start_tasks)
         task_id = choice(start_tasks)
         payload = {"task_id": task_id}
-        response = requests.delete(f"{self._api_url}/image/result", json=payload)
+        response = requests.delete(f"{self._api_url}/delete", json=payload)
         assert 200 == response.status_code
         data = response.json()
         assert "result" in data
