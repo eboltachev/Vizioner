@@ -25,7 +25,7 @@ class TestImage(TestCore):
             num_inference_steps=5,
             guidance_scale=3.5,
         )
-        response = requests.post(f"{self._api_url}/image/create", json=payload)
+        response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
         data = response.json()
         assert "id" in data
