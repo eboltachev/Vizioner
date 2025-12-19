@@ -12,19 +12,20 @@ load_dotenv()
 
 
 @pytest.mark.asyncio
-class TestImage(TestCore):
+class TestVideo(TestCore):
     _tasks = []
 
     async def test_create_one_with_input_id(self):
         payload = dict(
             input_id=123,
-            model_id="FLUX.1-dev",
+            model_id="Wan2.1-T2V-1.3B-Diffusers",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
-            num_images_per_prompt=1,
-            num_inference_steps=5,
+            num_videos_per_prompt=1,
+            num_frames=81,
             guidance_scale=3.5,
+            num_inference_steps=40,
         )
         response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
@@ -38,13 +39,14 @@ class TestImage(TestCore):
     async def test_create_one_none_input_id(self):
         payload = dict(
             input_id=None,
-            model_id="FLUX.2-dev",
+            model_id="Wan2.1-T2V-1.3B-Diffusers",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
-            num_images_per_prompt=1,
-            num_inference_steps=5,
+            num_videos_per_prompt=1,
+            num_frames=81,
             guidance_scale=3.5,
+            num_inference_steps=40,
         )
         response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
@@ -57,13 +59,14 @@ class TestImage(TestCore):
 
     async def test_create_one_misstake_input_id(self):
         payload = dict(
-            model_id="FLUX.1-dev",
+            model_id="Wan2.1-T2V-1.3B-Diffusers",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
-            num_images_per_prompt=1,
-            num_inference_steps=5,
+            num_videos_per_prompt=1,
+            num_frames=81,
             guidance_scale=3.5,
+            num_inference_steps=40,
         )
         response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
@@ -77,13 +80,14 @@ class TestImage(TestCore):
     async def test_create_several(self):
         payload = dict(
             input_id="0",
-            model_id="FLUX.1-dev",
+            model_id="Wan2.1-T2V-1.3B-Diffusers",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
             height=128,
             width=128,
-            num_images_per_prompt=4,
-            num_inference_steps=5,
+            num_videos_per_prompt=1,
+            num_frames=81,
             guidance_scale=3.5,
+            num_inference_steps=40,
         )
         response = requests.post(f"{self._api_url}/create", json=payload)
         assert 201 == response.status_code
