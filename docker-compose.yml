@@ -1,21 +1,56 @@
 services:
-  api:
-    containter_name: VisionerAPI
+  generative-ai:
+    container_name: VizionerAPI
+    build:
+      context: ./api
+      dockerfile: Dockerfile
     image: vizioner-api
-    # to-do
+    environment:
+      VIZIONER_BROKER_URL: redis://tasker:6379/0
+      VIZIONER_REDIS_URL: redis://tasker:6379/0
+      VIZIONER_CONTENT_TTL: ${VIZIONER_CONTENT_TTL:-3600}
+      VIZIONER_WORKER_NUMBER: ${VIZIONER_WORKER_NUMBER:-1}
+    volumes:
+      - ./models:/models:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      - tasker
 
   worker:
-    containter_name: VizionerWorker
+    container_name: VizionerWorker
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
     image: vizioner-worker
-    # to-do
+    environment:
+      VIZIONER_BROKER_URL: redis://tasker:6379/0
+      VIZIONER_REDIS_URL: redis://tasker:6379/0
+      VIZIONER_CONTENT_TTL: ${VIZIONER_CONTENT_TTL:-3600}
+      VIZIONER_WORKER_NUMBER: ${VIZIONER_WORKER_NUMBER:-1}
+    volumes:
+      - ./models:/models:ro
+    depends_on:
+      - tasker
 
   tasker:
-    containter_name: VizionerMemory
-    image: redis/redis:latest
-    # to-do
+    container_name: VizionerMemory
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
 
   content:
-    containter_name: VizionerStorage
+    container_name: VizionerStorage
     image: minio/minio:latest
-    # to-do
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - content-data:/data
 
+volumes:
+  content-data:
