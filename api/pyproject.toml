@@ -4,22 +4,10 @@ version = "0.1.0"
 description = "Vizioner API service"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115.0",
-    "pydantic>=2.8.2",
-    "uvicorn>=0.30.6",
-    "vizioner-common",
+    "celery>=5.6.0",
+    "fastapi>=0.127.0",
+    "pydantic>=2.12.5",
+    "redis>=7.1.0",
+    "uvicorn>=0.40.0",
 ]
 
-[project.optional-dependencies]
-common = ["vizioner-common"]
-
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-package-dir = {"" = "."}
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["api"]

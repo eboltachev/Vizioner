@@ -1,1 +1,0 @@
-"""Vizioner worker service."""

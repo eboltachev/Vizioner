@@ -1,15 +1,25 @@
-FROM python:3.12-slim
+FROM python:3.12
 
 WORKDIR /app
+COPY ./api/pyproject.toml ./
+COPY ./api/uv.lock ./
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV VIZIONER_CELERY_IMPORTS=worker.tasks
 
-COPY ../common /app/common
-COPY . /app/worker
+RUN apt update && \                                                                                        
+    apt install -y curl vim && \                                                                           
+    pip install --upgrade pip && \                                                                         
+    pip install uv
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project --no-dev
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir /app/common /app/worker
+COPY ./worker/tasks.py ./
+COPY ./worker/handler.py ./
+COPY ./api/.python-version ./
+COPY ./common ./common
 
-CMD ["sh", "-c", "celery -A common.celery_app worker --loglevel=info --concurrency=${VIZIONER_WORKER_NUMBER:-1}"]
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
+
+ENTRYPOINT uv run celery -A common.celery_app worker --loglevel=info --concurrency=${VIZIONER_WORKER_NUMBER:-1}

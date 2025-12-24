@@ -1,14 +1,21 @@
-FROM python:3.12-slim
+FROM python:3.12
 
 WORKDIR /app
+COPY ./api/pyproject.toml ./
+COPY ./api/uv.lock ./
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+RUN apt update && \                                                                                        
+    apt install -y curl vim && \                                                                           
+    pip install --upgrade pip && \                                                                         
+    pip install uv
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project --no-dev
+COPY ./api/app.py ./
+COPY ./api/.python-version ./
+COPY ./common ./common
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
-COPY ../common /app/common
-COPY . /app/api
-
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir /app/common /app/api
-
-CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT uv run uvicorn app:app --host ${API_HOST} --port ${API_PORT}
