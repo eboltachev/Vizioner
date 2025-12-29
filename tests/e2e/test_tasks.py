@@ -25,11 +25,11 @@ class TestImage(TestCore):
             num_inference_steps=5,
             guidance_scale=3.5,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_image", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)

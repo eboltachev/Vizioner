@@ -20,16 +20,16 @@ class TestImage(TestCore):
             input_id=123,
             model_id="stable-audio-open-1.0",
             prompt="The sound of a hammer hitting a wooden surface.",
-            audio_end_in_s=8.0,
-            num_waveforms_per_prompt=1,
             num_inference_steps=10,
             guidance_scale=4.0,
+            audio_end_in_s=8.0,
+            num_waveforms_per_prompt=1,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_audio", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
@@ -44,11 +44,11 @@ class TestImage(TestCore):
             num_inference_steps=10,
             guidance_scale=4.0,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_audio", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
@@ -62,11 +62,11 @@ class TestImage(TestCore):
             num_inference_steps=10,
             guidance_scale=4.0,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_audio", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
@@ -81,11 +81,11 @@ class TestImage(TestCore):
             num_inference_steps=10,
             guidance_scale=4.0,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_audio", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)

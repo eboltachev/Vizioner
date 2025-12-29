@@ -19,12 +19,12 @@ class TestModels(TestCore):
         assert isinstance(models, list)
         assert models
         for model in models:
-            model_id = model.get("id")
+            model_id = model.get("model_id")
             model_type = model.get("type")
-            model_descriprtion = model.get("descriprtion")
+            model_description = model.get("description")
             assert isinstance(model_id, str)
             assert isinstance(model_type, str)
-            assert isinstance(model_descriprtion, str)
+            assert isinstance(model_description, str)
 
     async def test_health(self):
         response = requests.get(f"{self._api_url}/health")

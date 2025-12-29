@@ -13,6 +13,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-dev
 COPY ./api/app.py ./
+COPY ./api/schemas.py ./
 COPY ./api/.python-version ./
 COPY ./common ./common
 RUN --mount=type=cache,target=/root/.cache/uv \

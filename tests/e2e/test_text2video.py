@@ -20,18 +20,18 @@ class TestVideo(TestCore):
             input_id=123,
             model_id="Wan2.1-T2V-1.3B-Diffusers",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
+            num_inference_steps=40,
+            guidance_scale=3.5,
             height=128,
             width=128,
-            num_videos_per_prompt=1,
             num_frames=81,
-            guidance_scale=3.5,
-            num_inference_steps=40,
+            num_videos_per_prompt=1,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_video", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
@@ -48,11 +48,11 @@ class TestVideo(TestCore):
             guidance_scale=3.5,
             num_inference_steps=40,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_video", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
@@ -68,11 +68,11 @@ class TestVideo(TestCore):
             guidance_scale=3.5,
             num_inference_steps=40,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_video", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
@@ -89,11 +89,11 @@ class TestVideo(TestCore):
             guidance_scale=3.5,
             num_inference_steps=40,
         )
-        response = requests.post(f"{self._api_url}/create", json=payload)
+        response = requests.post(f"{self._api_url}/create_video", json=payload)
         assert 201 == response.status_code
         data = response.json()
-        assert "id" in data
-        task_id = data.get("id")
+        assert "task_id" in data
+        task_id = data.get("task_id")
         assert isinstance(task_id, str)
         assert re.match(self._id_pattern, task_id)
         self._tasks.append(task_id)
