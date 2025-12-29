@@ -14,8 +14,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-dev
 
-COPY ./worker/tasks.py ./
-COPY ./worker/handler.py ./
+COPY ./worker ./worker
 COPY ./api/.python-version ./
 COPY ./common ./common
 

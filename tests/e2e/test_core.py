@@ -46,8 +46,8 @@ class TestCore:
                 stderr=logs_file,
             )
 
-        self._api_host = os.environ.get("GENERATIVE_API_HOST", "localhost")
-        self._api_port = os.environ.get("GENERATIVE_API_PORT", 8000)
+        self._api_host = os.environ.get("API_HOST", "localhost")
+        self._api_port = os.environ.get("API_PORT", 8000)
         self._api_url = f"http://{self._api_host}:{self._api_port}"
         self._headers = {}
         self._id_pattern = r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
@@ -69,7 +69,7 @@ class TestCore:
             logs_file.write(f"\n\n**Logs:**\n\n")
         with open(self.logs_file_path, "a") as logs_file:
             subprocess.run(
-                ["docker", "compose", "-f", self._compose_file, "logs", "generative-ai"],
+                ["docker", "compose", "-f", self._compose_file, "logs", "api"],
                 cwd=self._cwd,
                 stdout=logs_file,
                 stderr=logs_file,

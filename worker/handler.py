@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from time import sleep
 from typing import Any, Callable
 
 
@@ -19,6 +20,7 @@ class ModelHandler:
 
     def handle(self, model_id: str, payload: dict[str, Any], index: int, total: int) -> str:
         handler = self._handlers.get(model_id, self._handle_default)
+        # sleep(30)
         return handler(model_id, payload, index, total)
 
     def _handle_text_to_image(self, model_id: str, payload: dict[str, Any], index: int, total: int) -> str:

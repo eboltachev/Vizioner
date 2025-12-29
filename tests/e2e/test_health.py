@@ -13,7 +13,7 @@ class TestHealth(TestCore):
     async def test_docs(self):
         response = requests.get(f"{self._api_url}/docs")
         assert 200 == response.status_code
-        assert "FastAPI - Swagger UI" in response.text
+        assert "Vizioner" in response.text
 
     async def test_health(self):
         response = requests.get(f"{self._api_url}/health")

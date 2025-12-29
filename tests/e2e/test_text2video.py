@@ -128,6 +128,7 @@ class TestVideo(TestCore):
         assert "results" in data
         results = data.get("results")
         assert isinstance(results, list)
+        assert len(results) > 0
         for result in results:
             input_id = result.get("input_id", "-100")
             task_id = result.get("task_id")
