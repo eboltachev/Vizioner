@@ -117,19 +117,17 @@ class TestImage(TestCore):
         response = requests.get(f"{self._api_url}/result", params=params)
         assert 200 == response.status_code
         data = response.json()
-        assert "results" in data
-        results = data.get("results")
-        assert isinstance(results, list)
-        assert len(results) > 0
-        for result in results:
-            input_id = result.get("input_id", "-100")
-            task_id = result.get("task_id")
-            contents = result.get("contents")
-            assert input_id != "-100"
-            assert re.match(self._id_pattern, task_id)
-            assert isinstance(contents, list)
-            for content in contents:
-                assert isinstance(content, str)
+        assert "contents" in data
+        contents = data.get("contents")
+        assert isinstance(contents, list)
+        assert len(contents) > 0
+        assert all([isinstance(content, str) for content in contents])
+        assert "input_id" in data
+        input_id = data.get("input_id", "-100")
+        assert input_id != "-100"
+        assert "task_id" in data
+        task_id = data.get("task_id")
+        assert re.match(self._id_pattern, task_id)
 
     async def test_delete(self):
         response = requests.get(f"{self._api_url}/tasks")

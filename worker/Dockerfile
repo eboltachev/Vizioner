@@ -1,8 +1,8 @@
 FROM python:3.12
 
 WORKDIR /app
-COPY ./api/pyproject.toml ./
-COPY ./api/uv.lock ./
+COPY ./worker/pyproject.toml ./
+COPY ./worker/uv.lock ./
 
 
 RUN apt update && \                                                                                        
@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-dev
 
 COPY ./worker ./worker
-COPY ./api/.python-version ./
+COPY ./worker/.python-version ./
 COPY ./common ./common
 
 RUN --mount=type=cache,target=/root/.cache/uv \

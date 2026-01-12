@@ -12,7 +12,7 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - tasker
+      - broker
 
   worker:
     container_name: VizionerWorker
@@ -22,19 +22,20 @@ services:
     image: vizioner-worker
     volumes:
       - ./models:/models:ro
+      - ./tempfiles:/tempfiles
     env_file:
       - ./.env
     depends_on:
-      - tasker
+      - broker
 
-  tasker:
-    container_name: VizionerMemory
+  broker:
+    container_name: VizionerBroker
     image: redis:7.4-alpine
     ports:
       - "6379:6379"
 
   content:
-    container_name: VizionerStorage
+    container_name: VizionerContent
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     env_file:
