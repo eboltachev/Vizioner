@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from worker.mocks import create_audios, create_images, create_videos
+from worker.generator import create_audios, create_images, create_videos
 
 
 class ModelHandler:
