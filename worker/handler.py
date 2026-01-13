@@ -81,7 +81,7 @@ class ModelHandler:
         num_inference_steps = payload.get("num_inference_steps", 10) or 10
         guidance_scale = payload.get("guidance_scale", 3.5) or 3.5
         audio_end_in_s = payload.get("audio_end_in_s", 5.0) or 5.0
-        num_waveforms_per_prompt = payload.get("num_videos_per_prompt", 1) or 1
+        num_waveforms_per_prompt = payload.get("num_waveforms_per_prompt", 1) or 1
         files = create_audios(
             model_id=model_id,
             prompt=prompt,
