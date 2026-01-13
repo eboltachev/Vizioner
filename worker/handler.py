@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-from time import sleep
-from typing import Any, Callable, List
+from typing import Any, List
 
 from worker.content import Content
 from worker.mocks import create_audios, create_images, create_videos
@@ -14,6 +13,7 @@ class ModelHandler:
     def __new__(cls) -> "ModelHandler":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._instance._content: Content | None = None
             cls._instance._handlers = {
                 "FLUX.1-dev": cls._instance._handle_text_to_image,
                 "FLUX.2-dev": cls._instance._handle_text_to_image,
@@ -22,6 +22,11 @@ class ModelHandler:
                 "stable-audio-open-1.0": cls._instance._handle_text_to_audio,
             }
         return cls._instance
+
+    def _content_client(self) -> Content:
+        if self._content is None:
+            self._content = Content()
+        return self._content
 
     def handle(
         self,
@@ -39,6 +44,7 @@ class ModelHandler:
         height = payload.get("height", 128) or 128
         width = payload.get("width", 128) or 128
         num_images_per_prompt = payload.get("num_images_per_prompt", 1) or 1
+
         files = create_images(
             model_id=model_id,
             prompt=prompt,
@@ -49,7 +55,9 @@ class ModelHandler:
             num_images_per_prompt=num_images_per_prompt,
             tempdir=tempdir,
         )
-        contents = files  # to-do list of s3 paths from variable files
+
+        # Главное изменение: сохраняем в S3 и возвращаем публичные URL.
+        contents = self._content_client().upload_files(files, prefix=model_id)
         self._remove(files)
         return contents
 
@@ -61,6 +69,7 @@ class ModelHandler:
         width = payload.get("width", 128) or 128
         num_frames = payload.get("num_frames", 80) or 80
         num_videos_per_prompt = payload.get("num_videos_per_prompt", 1) or 1
+
         files = create_videos(
             model_id=model_id,
             prompt=prompt,
@@ -72,7 +81,8 @@ class ModelHandler:
             num_videos_per_prompt=num_videos_per_prompt,
             tempdir=tempdir,
         )
-        contents = files  # to-do list of s3 paths from variable files
+
+        contents = self._content_client().upload_files(files, prefix=model_id)
         self._remove(files)
         return contents
 
@@ -82,6 +92,7 @@ class ModelHandler:
         guidance_scale = payload.get("guidance_scale", 3.5) or 3.5
         audio_end_in_s = payload.get("audio_end_in_s", 5.0) or 5.0
         num_waveforms_per_prompt = payload.get("num_waveforms_per_prompt", 1) or 1
+
         files = create_audios(
             model_id=model_id,
             prompt=prompt,
@@ -91,7 +102,8 @@ class ModelHandler:
             num_waveforms_per_prompt=num_waveforms_per_prompt,
             tempdir=tempdir,
         )
-        contents = files  # to-do list of s3 paths from variable files
+
+        contents = self._content_client().upload_files(files, prefix=model_id)
         self._remove(files)
         return contents
 

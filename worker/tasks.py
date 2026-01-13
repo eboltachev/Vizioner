@@ -30,12 +30,7 @@ def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     model_id = payload.get("model_id", "unknown")
     _maybe_release_gpu(model_id)
     broker.update_task(task_id, status="PENDING", progress=0)
-    try:
-        contents: list[str] = handler.handle(model_id=model_id, payload=payload, tempdir=state.worker_tempdir)
-        broker.update_task(task_id, status="SUCCESS", progress=100, contents=contents)
-        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=state.vizioner_content_ttl)
-        return {"task_id": task_id, "expires_at": expires_at.isoformat()}
-    except Exception as error:
-        print(f"{error=}")
-        broker.update_task(task_id, status="ERROR", progress=100, contents=[])
-        return {"task_id": task_id, "error": str(error)}
+    contents: list[str] = handler.handle(model_id=model_id, payload=payload, tempdir=state.worker_tempdir)
+    broker.update_task(task_id, status="SUCCESS", progress=100, contents=contents)
+    expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=state.vizioner_content_ttl)
+    return {"task_id": task_id, "expires_at": expires_at.isoformat()}
