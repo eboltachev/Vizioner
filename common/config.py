@@ -19,6 +19,7 @@ class State:
     vizioner_content_region: str
     vizioner_content_ttl: int
     vizioner_content_certificate: bool
+    vizioner_content_apply_public_policy: bool
 
 
 def get_state() -> State:
@@ -35,4 +36,5 @@ def get_state() -> State:
         vizioner_content_region=settings.VIZIONER_CONTENT_REGION,
         vizioner_content_ttl=settings.VIZIONER_CONTENT_TTL,
         vizioner_content_certificate=settings.VIZIONER_CONTENT_CERTIFICATE,
+        vizioner_content_apply_public_policy=settings.VIZIONER_CONTENT_APPLY_PUBLIC_POLICY,
     )
