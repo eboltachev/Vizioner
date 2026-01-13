@@ -46,3 +46,5 @@ class TestImage(TestCore):
             assert isinstance(self_task_id, str)
             assert isinstance(data_task_id, str)
             assert self_task_id == data_task_id
+            payload = {"task_id": data_task_id}
+            response = requests.delete(f"{self._api_url}/delete", json=payload)

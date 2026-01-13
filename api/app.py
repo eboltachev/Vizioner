@@ -24,7 +24,7 @@ from schemas import (
 )
 
 state = get_state()
-broker = TaskBroker(state.broker_url)
+broker = TaskBroker(state.broker_url, ttl_seconds=state.vizioner_content_ttl)
 models_root = Path("/models")
 
 app = FastAPI(title="Vizioner")
@@ -52,6 +52,7 @@ async def create_image(request: CreateImageRequest) -> CreateTaskResponse:
     task_id = str(uuid.uuid4())
     payload = request.model_dump()
     broker.register_task(task_id, payload)
+    celery_app.send_task("vizioner.purge_task", args=[task_id], countdown=state.vizioner_content_ttl)
     celery_app.send_task("vizioner.generate_content", args=[task_id, payload])
     return CreateTaskResponse(task_id=task_id)
 
@@ -64,6 +65,7 @@ async def create_audio(request: CreateAudioRequest) -> CreateTaskResponse:
     task_id = str(uuid.uuid4())
     payload = request.model_dump()
     broker.register_task(task_id, payload)
+    celery_app.send_task("vizioner.purge_task", args=[task_id], countdown=state.vizioner_content_ttl)
     celery_app.send_task("vizioner.generate_content", args=[task_id, payload])
     return CreateTaskResponse(task_id=task_id)
 
@@ -76,6 +78,7 @@ async def create_video(request: CreateVideoRequest) -> CreateTaskResponse:
     task_id = str(uuid.uuid4())
     payload = request.model_dump()
     broker.register_task(task_id, payload)
+    celery_app.send_task("vizioner.purge_task", args=[task_id], countdown=state.vizioner_content_ttl)
     celery_app.send_task("vizioner.generate_content", args=[task_id, payload])
     return CreateTaskResponse(task_id=task_id)
 
@@ -105,4 +108,5 @@ async def result(task_id: str) -> ResultResponse:
 @app.delete("/delete", response_model=DeleteTaskResponse, status_code=200)
 async def delete(request: DeleteTaskRequest) -> DeleteTaskResponse:
     broker.delete_task(request.task_id)
+    celery_app.send_task("vizioner.purge_task", args=[request.task_id], countdown=0)
     return DeleteTaskResponse(result="SUCCESS")
