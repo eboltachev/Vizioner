@@ -13,6 +13,7 @@ services:
       - ./.env
     depends_on:
       - broker
+    restart: always
 
   worker:
     container_name: VizionerWorker
@@ -27,19 +28,25 @@ services:
       - ./.env
     depends_on:
       - broker
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    restart: always
+    mem_limit: 120g
+    shm_size: 16g
+    runtime: nvidia
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      PYTORCH_CUDA_ALLOC_CONF: max_split_size_mb:512
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
   broker:
     container_name: VizionerBroker
     image: redis:7.4-alpine
     ports:
       - "6379:6379"
+    restart: always
 
   content:
     container_name: VizionerContent
@@ -52,6 +59,7 @@ services:
       - "9001:9001"
     volumes:
       - content-data:/data
+    restart: always
 
 volumes:
   content-data:
