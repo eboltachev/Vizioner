@@ -24,9 +24,11 @@ class ModelHandler:
         handler = self._handlers.get(model_id, self._handle_text_to_image)
         return handler(model_id=model_id, payload=payload, tempdir=tempdir)
 
-    def _handle_text_to_image(self, model_id: str, payload: dict[str, Any], tempdir: str) -> List[str]:
+    def _handle_text_to_image(
+        self, model_id: str, payload: dict[str, Any], tempdir: str, model_dir: str = "/models/text_to_image"
+    ) -> List[str]:
         return create_images(
-            model_id=model_id,
+            model_id=f"{model_dir}/{model_id}",
             prompt=payload.get("prompt", ""),
             num_inference_steps=payload.get("num_inference_steps", 10) or 10,
             guidance_scale=payload.get("guidance_scale", 3.5) or 3.5,
@@ -36,9 +38,11 @@ class ModelHandler:
             tempdir=tempdir,
         )
 
-    def _handle_text_to_video(self, model_id: str, payload: dict[str, Any], tempdir: str) -> List[str]:
+    def _handle_text_to_video(
+        self, model_id: str, payload: dict[str, Any], tempdir: str, model_dir: str = "/models/text_to_video"
+    ) -> List[str]:
         return create_videos(
-            model_id=model_id,
+            model_id=f"{model_dir}/{model_id}",
             prompt=payload.get("prompt", ""),
             num_inference_steps=payload.get("num_inference_steps", 10) or 10,
             guidance_scale=payload.get("guidance_scale", 3.5) or 3.5,
@@ -49,9 +53,11 @@ class ModelHandler:
             tempdir=tempdir,
         )
 
-    def _handle_text_to_audio(self, model_id: str, payload: dict[str, Any], tempdir: str) -> List[str]:
+    def _handle_text_to_audio(
+        self, model_id: str, payload: dict[str, Any], tempdir: str, model_dir: str = "/models/text_to_audio"
+    ) -> List[str]:
         return create_audios(
-            model_id=model_id,
+            model_id=f"{model_dir}/{model_id}",
             prompt=payload.get("prompt", ""),
             num_inference_steps=payload.get("num_inference_steps", 10) or 10,
             guidance_scale=payload.get("guidance_scale", 3.5) or 3.5,

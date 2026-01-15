@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import soundfile
 import torch
-from diffusers import DiffusionPipeline, EulerDiscreteScheduler, StableAudioPipeline
+from diffusers import DiffusionPipeline, EulerDiscreteScheduler, StableAudioPipeline, FluxPipeline
 from diffusers.utils import export_to_video, load_image
 
 

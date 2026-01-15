@@ -72,6 +72,7 @@ def _maybe_release_gpu(model_id: str) -> None:
 
 
 def _remove_local(files: list[str]) -> None:
+    return
     for file in files:
         if file:
             while os.path.exists(file):

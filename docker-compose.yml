@@ -27,6 +27,13 @@ services:
       - ./.env
     depends_on:
       - broker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   broker:
     container_name: VizionerBroker

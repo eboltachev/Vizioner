@@ -11,3 +11,4 @@ wheels/
 .env
 dev
 tempfiles/
+models

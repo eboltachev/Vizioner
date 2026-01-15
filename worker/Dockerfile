@@ -1,5 +1,6 @@
 FROM python:3.12
 
+ARG UV_HTTP_TIMEOUT=30000
 WORKDIR /app
 COPY ./worker/pyproject.toml ./
 COPY ./worker/uv.lock ./
@@ -21,4 +22,4 @@ COPY ./common ./common
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
-ENTRYPOINT uv run celery -A common.celery_app worker --loglevel=info --concurrency=${VIZIONER_WORKER_NUMBER:-1}
+ENTRYPOINT uv run celery -A common.celery_app worker --loglevel=info --concurrency=${VIZIONER_WORKER_NUMBER:-1} --pool=threads
