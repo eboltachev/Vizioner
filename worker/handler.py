@@ -17,9 +17,12 @@ class ModelHandler:
             cls._instance._handlers = {
                 "FLUX.1-dev": cls._instance._handle_text_to_image,
                 "FLUX.2-dev": cls._instance._handle_text_to_image,
-                "Wan2.1-T2V-1.3B-Diffusers": cls._instance._handle_text_to_video,
-                "Wan2.2-TI2V-5B-Diffusers": cls._instance._handle_text_to_video,
                 "stable-audio-open-1.0": cls._instance._handle_text_to_audio,
+                "Wan2.1-T2V-1.3B-Diffusers": cls._instance._handle_text_to_video,
+                "Wan2.1-T2V-14B-Diffusers": cls._instance._handle_text_to_video,
+                "Wan2.2-T2V-A14B-Diffusers": cls._instance._handle_text_to_video,
+                "Wan2.2-TI2V-5B-Diffusers": cls._instance._handle_text_to_video,
+
             }
         return cls._instance
 

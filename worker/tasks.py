@@ -24,8 +24,6 @@ content = Content()
 _model_lock = threading.Lock()
 _current_model_id: str | None = None
 
-from collections.abc import Callable
-
 @celery_app.task(name="vizioner.generate_content")
 def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     if not broker.task_exists(task_id):
@@ -39,23 +37,28 @@ def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
             return
         broker.update_task(task_id, status="IN_PROGRESS", progress=min(0.95, float(percent)))
 
-    files: list[str] = handler.handle(
-        model_id=model_id,
-        payload=payload,
-        tempdir=state.worker_tempdir,
-        progress_callback=_progress_cb,
-    )
-    if not broker.task_exists(task_id):
+    try:
+        files: list[str] = handler.handle(
+            model_id=model_id,
+            payload=payload,
+            tempdir=state.worker_tempdir,
+            progress_callback=_progress_cb,
+        )
+        if not broker.task_exists(task_id):
+            _remove_local(files)
+            return {"task_id": task_id, "status": "CANCELLED"}
+        prefix = f"tasks/{task_id}/{model_id}"
+        broker.update_task(task_id, status="IN_PROGRESS", progress=95.0)
+        contents: list[str] = content.upload_files(files, prefix=prefix)
+        broker.update_task(task_id, status="SUCCESS", progress=100.0, contents=contents)
         _remove_local(files)
-        return {"task_id": task_id, "status": "CANCELLED"}
-    prefix = f"tasks/{task_id}/{model_id}"
-    broker.update_task(task_id, status="IN_PROGRESS", progress=95.0)
-    contents: list[str] = content.upload_files(files, prefix=prefix)
-    broker.update_task(task_id, status="SUCCESS", progress=100.0, contents=contents)
-    _remove_local(files)
-    _schedule_auto_purge(task_id)
-    expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=state.vizioner_content_ttl)
-    return {"task_id": task_id, "expires_at": expires_at.isoformat()}
+        _schedule_auto_purge(task_id)
+        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=state.vizioner_content_ttl)
+        return {"task_id": task_id, "expires_at": expires_at.isoformat()}
+    except Exception as error:
+        logger.exception(str(error))
+        broker.update_task(task_id, status="ERROR", progress=0, contents=[])
+        return {"task_id": task_id, "expires_at": 0}
 
 
 @celery_app.task(
