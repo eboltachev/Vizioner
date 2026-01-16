@@ -35,7 +35,7 @@ def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     def _progress_cb(percent: float) -> None:
         if not broker.task_exists(task_id):
             return
-        broker.update_task(task_id, status="IN_PROGRESS", progress=min(0.95, float(percent)))
+        broker.update_task(task_id, status="IN_PROGRESS", progress=min(95.0, float(percent)))
 
     try:
         files: list[str] = handler.handle(
