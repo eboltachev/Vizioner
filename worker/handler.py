@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, List
 from collections.abc import Callable
+from typing import Any, List
 
 from worker.generator import create_audios, create_images, create_videos
 
@@ -22,16 +22,22 @@ class ModelHandler:
                 "Wan2.1-T2V-14B-Diffusers": cls._instance._handle_text_to_video,
                 "Wan2.2-T2V-A14B-Diffusers": cls._instance._handle_text_to_video,
                 "Wan2.2-TI2V-5B-Diffusers": cls._instance._handle_text_to_video,
-
             }
         return cls._instance
 
-    def handle(self, model_id: str, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None) -> List[str]:
+    def handle(
+        self, model_id: str, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None
+    ) -> List[str]:
         handler = self._handlers.get(model_id, self._handle_text_to_image)
         return handler(model_id=model_id, payload=payload, tempdir=tempdir, progress_callback=progress_callback)
 
     def _handle_text_to_image(
-        self, model_id: str, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None, model_dir: str = "/models/text_to_image"
+        self,
+        model_id: str,
+        payload: dict[str, Any],
+        tempdir: str,
+        progress_callback: ProgressCallback | None = None,
+        model_dir: str = "/models/text_to_image",
     ) -> List[str]:
         return create_images(
             model_id=f"{model_dir}/{model_id}",
@@ -46,7 +52,12 @@ class ModelHandler:
         )
 
     def _handle_text_to_video(
-        self, model_id: str, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None, model_dir: str = "/models/text_to_video"
+        self,
+        model_id: str,
+        payload: dict[str, Any],
+        tempdir: str,
+        progress_callback: ProgressCallback | None = None,
+        model_dir: str = "/models/text_to_video",
     ) -> List[str]:
         return create_videos(
             model_id=f"{model_dir}/{model_id}",
@@ -62,7 +73,12 @@ class ModelHandler:
         )
 
     def _handle_text_to_audio(
-        self, model_id: str, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None, model_dir: str = "/models/text_to_audio"
+        self,
+        model_id: str,
+        payload: dict[str, Any],
+        tempdir: str,
+        progress_callback: ProgressCallback | None = None,
+        model_dir: str = "/models/text_to_audio",
     ) -> List[str]:
         return create_audios(
             model_id=f"{model_dir}/{model_id}",

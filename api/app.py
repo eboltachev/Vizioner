@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from pathlib import Path
-import logging
 
 from common.celery_app import celery_app
 from common.config import get_state

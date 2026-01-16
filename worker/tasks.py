@@ -21,15 +21,12 @@ broker = TaskBroker(state.broker_url, ttl_seconds=state.vizioner_content_ttl)
 handler = ModelHandler()
 content = Content()
 
-_model_lock = threading.Lock()
-_current_model_id: str | None = None
 
 @celery_app.task(name="vizioner.generate_content")
 def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     if not broker.task_exists(task_id):
         return {"task_id": task_id, "status": "CANCELLED"}
     model_id = payload.get("model_id", "unknown")
-    _maybe_release_gpu(model_id)
     broker.update_task(task_id, status="STARTED", progress=0)
 
     def _progress_cb(percent: float) -> None:
@@ -77,14 +74,6 @@ def purge_task(self, task_id: str) -> dict[str, Any]:
         raise
     broker.delete_task(task_id)
     return {"task_id": task_id, "deleted": deleted, "prefix": prefix}
-
-
-def _maybe_release_gpu(model_id: str) -> None:
-    global _current_model_id
-    with _model_lock:
-        if _current_model_id and _current_model_id != model_id:
-            _current_model_id = None
-        _current_model_id = model_id
 
 
 def _remove_local(files: list[str]) -> None:

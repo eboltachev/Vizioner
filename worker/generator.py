@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import inspect
+import os
 import time
 from collections.abc import Callable
 from uuid import uuid4
 
 import soundfile
 import torch
-from diffusers import DiffusionPipeline, EulerDiscreteScheduler, StableAudioPipeline, FluxPipeline
+from diffusers import DiffusionPipeline, EulerDiscreteScheduler, FluxPipeline, StableAudioPipeline
 from diffusers.utils import export_to_video, load_image
-
-import torch
-import os
 
 torch.cuda.set_per_process_memory_fraction(0.95, device=0)
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "max_split_size_mb:512")
@@ -46,22 +44,28 @@ def _build_progress_kwargs(
             last_emit_percent = pct
             last_emit_ts = now
             progress_callback(pct)
+
     if "callback_on_step_end" in params:
+
         def _on_step_end(pipeline, step: int, timestep: int, callback_kwargs: dict):
             _emit(step)
             return callback_kwargs
+
         kwargs: dict = {"callback_on_step_end": _on_step_end}
         if "callback_on_step_end_tensor_inputs" in params:
             kwargs["callback_on_step_end_tensor_inputs"] = []
         return kwargs
     if "callback" in params:
+
         def _callback(step: int, timestep: int, latents=None):
             _emit(step)
+
         kwargs = {"callback": _callback}
         if "callback_steps" in params:
             kwargs["callback_steps"] = 1
         return kwargs
     return {}
+
 
 def _log(value: object) -> None:
     print(f"{value=}")
