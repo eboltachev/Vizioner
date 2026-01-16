@@ -71,7 +71,7 @@ async def create_audio(request: CreateAudioRequest) -> CreateTaskResponse:
     broker.register_task(task_id, payload)
     celery_app.send_task("vizioner.purge_task", args=[task_id], countdown=state.vizioner_content_ttl)
     celery_app.send_task("vizioner.generate_content", args=[task_id, payload])
-    logger.info(f"Registred audio task, {task_i=}, {payloa=}")
+    logger.info(f"Registred audio task, {task_id=}, {payload=}")
     return CreateTaskResponse(task_id=task_id)
 
 
@@ -116,10 +116,11 @@ async def result(task_id: str) -> ResultResponse:
 
 @app.delete("/delete", response_model=DeleteTaskResponse, status_code=200)
 async def delete(request: DeleteTaskRequest) -> DeleteTaskResponse:
-    task = broker.get_task(request.task_id)
+    task_id = request.task_id
+    task = broker.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    broker.delete_task(request.task_id)
-    celery_app.send_task("vizioner.purge_task", args=[request.task_id], countdown=0)
+    broker.delete_task(task_id)
+    celery_app.send_task("vizioner.purge_task", args=[task_id], countdown=0)
     logger.info(f"Delete {task_id=}")
     return DeleteTaskResponse(result="SUCCESS")
