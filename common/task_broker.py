@@ -92,7 +92,6 @@ class TaskBroker:
         ids: list[str] = []
         for key in self._client.scan_iter(match="task:*", count=1000):
             ids.append(key.split("task:", 1)[-1])
-        ids.sort()
         return ids
 
     def delete_task(self, task_id: str) -> None:
