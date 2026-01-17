@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     VIZIONER_BROKER_URL: str = Field(default="redis://broker:6379/0", description="Celery broker URL")
     VIZIONER_WORKER_NUMBER: int = Field(default=1, description="Worker concurrency")
+    VIZIONER_WORKER_MODELS_ROOT: str = Field(default="/models", description="Models root path")
     VIZIONER_WORKER_TEMPDIR: str = Field(default="/tempfiles", description="Worker tempfiles")
     VIZIONER_CONTENT_INTERNAL_ENDPOINT_URL: str = Field(
         default="http://content:9000", description="S3 internal endpoint URL"

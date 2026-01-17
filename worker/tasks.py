@@ -19,34 +19,37 @@ logger = logging.getLogger(__name__)
 
 state = get_state()
 broker = TaskBroker(state.broker_url, ttl_seconds=state.vizioner_content_ttl)
-models_root = Path("/models")
+models_root = Path(state.worker_models)
+tempdir = state.worker_tempdir
 content = Content()
 
 
 @celery_app.task(name="vizioner.generate_content")
 def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-    available_models = {model.id: model.type for model in load_models(models_root)}
     if not broker.task_exists(task_id):
         return {"task_id": task_id, "status": "CANCELLED"}
+    available_models = {model.id: model.type for model in load_models(models_root)}
     model_id = payload.get("model_id", "unknown")
     if model_id not in available_models:
         logger.info(f"Model {model_id} not found")
         return {"task_id": task_id, "status": "ERROR"}
     model_type = available_models.get(model_id)
-    broker.update_task(task_id, status="STARTED", progress=0)
+    if model_type is None:
+        raise Exception("Model type not found")
 
-    def _progress_cb(percent: float) -> None:
+    def _progress_callback(percent: float) -> None:
         if not broker.task_exists(task_id):
             return
         broker.update_task(task_id, status="IN_PROGRESS", progress=min(95.0, float(percent)))
 
+    broker.update_task(task_id, status="STARTED", progress=0)
+    payload["model_type"] = model_type
+    payload["model_path"] = models_root / model_type / model_id
+    payload["tempdir"] = tempdir
+    payload["progress_callback"] = _progress_callback
+
     try:
-        handler = ModelHandler(model_id=model_id, model_type=model_type, models_root=models_root)
-        files: list[str] = handler.handle(
-            payload=payload,
-            tempdir=state.worker_tempdir,
-            progress_callback=_progress_cb,
-        )
+        files: list[str] = ModelHandler().handle(payload=payload)
         if not broker.task_exists(task_id):
             _remove_local(files)
             return {"task_id": task_id, "status": "CANCELLED"}
@@ -75,8 +78,6 @@ def purge_task(self, task_id: str) -> dict[str, Any]:
         raise
     broker.delete_task(task_id)
     return {"task_id": task_id, "deleted": deleted, "prefix": prefix}
-
-
 
 
 def _schedule_auto_purge(task_id: str) -> None:

@@ -11,6 +11,7 @@ class State:
     broker_url: str
     worker_concurrency: int
     worker_tempdir: str
+    worker_models: str
     vizioner_content_internal_endpoint_url: str
     vizioner_content_public_endpoint_url: str
     vizioner_content_access_key: str
@@ -37,4 +38,5 @@ def get_state() -> State:
         vizioner_content_ttl=settings.VIZIONER_CONTENT_TTL,
         vizioner_content_certificate=settings.VIZIONER_CONTENT_CERTIFICATE,
         vizioner_content_apply_public_policy=settings.VIZIONER_CONTENT_APPLY_PUBLIC_POLICY,
+        worker_models=settings.VIZIONER_WORKER_MODELS_ROOT
     )

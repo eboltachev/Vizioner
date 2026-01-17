@@ -171,3 +171,20 @@ def _log(value: object) -> None:
     print(f"{value=}")
 
 
+def _get_generator(model_type: str) -> Callable:
+    match model_type:
+        case "text_to_image":
+            return create_images
+        case "text_to_audio":
+            return create_audios
+        case "text_to_video":
+            return create_videos
+
+if __name__ is "__main__":
+    import sys
+    import json
+
+    payload = json.loads(sys.stdin.read())
+    model_type = payload.get("model_type", "unknown")
+    generator = _get_generator(model_type=model_type)
+    files = generator(payload) 

@@ -38,13 +38,13 @@ class TestImage(TestCore):
     async def test_create_one_none_input_id(self):
         payload = dict(
             input_id=None,
-            model_id="FLUX.2-dev",
+            model_id="FLUX.1-dev",
             prompt="Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
+            num_inference_steps=2,
+            guidance_scale=3.5,
             height=128,
             width=128,
             num_images_per_prompt=1,
-            num_inference_steps=5,
-            guidance_scale=3.5,
         )
         response = requests.post(f"{self._api_url}/create_image", json=payload)
         assert 201 == response.status_code
