@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-import threading
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from common.celery_app import celery_app
 from common.config import get_state
 from common.task_broker import TaskBroker
+from common.models_catalog import load_models
 
 from worker.content import Content
 from worker.handler import ModelHandler
@@ -18,15 +19,20 @@ logger = logging.getLogger(__name__)
 
 state = get_state()
 broker = TaskBroker(state.broker_url, ttl_seconds=state.vizioner_content_ttl)
-handler = ModelHandler()
+models_root = Path("/models")
 content = Content()
 
 
 @celery_app.task(name="vizioner.generate_content")
 def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    available_models = {model.id: model.type for model in load_models(models_root)}
     if not broker.task_exists(task_id):
         return {"task_id": task_id, "status": "CANCELLED"}
     model_id = payload.get("model_id", "unknown")
+    if model_id not in available_models:
+        logger.info(f"Model {model_id} not found")
+        return {"task_id": task_id, "status": "ERROR"}
+    model_type = available_models.get(model_id)
     broker.update_task(task_id, status="STARTED", progress=0)
 
     def _progress_cb(percent: float) -> None:
@@ -35,8 +41,8 @@ def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         broker.update_task(task_id, status="IN_PROGRESS", progress=min(95.0, float(percent)))
 
     try:
+        handler = ModelHandler(model_id=model_id, model_type=model_type, models_root=models_root)
         files: list[str] = handler.handle(
-            model_id=model_id,
             payload=payload,
             tempdir=state.worker_tempdir,
             progress_callback=_progress_cb,
@@ -58,12 +64,7 @@ def generate_content(task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         return {"task_id": task_id, "expires_at": 0}
 
 
-@celery_app.task(
-    name="vizioner.purge_task",
-    bind=True,
-    max_retries=5,
-    default_retry_delay=5,
-)
+@celery_app.task(name="vizioner.purge_task", bind=True, max_retries=5, default_retry_delay=5)
 def purge_task(self, task_id: str) -> dict[str, Any]:
     prefix = Content.task_prefix(task_id)
     try:
@@ -76,11 +77,6 @@ def purge_task(self, task_id: str) -> dict[str, Any]:
     return {"task_id": task_id, "deleted": deleted, "prefix": prefix}
 
 
-def _remove_local(files: list[str]) -> None:
-    for file in files:
-        if file:
-            while os.path.exists(file):
-                os.remove(file)
 
 
 def _schedule_auto_purge(task_id: str) -> None:
@@ -92,3 +88,10 @@ def _is_retryable_s3_error(exception: Exception) -> bool:
         code = str(exception.response.get("Error", {}).get("Code", ""))
         return code in {"SlowDown", "InternalError", "ServiceUnavailable", "RequestTimeout"}
     return False
+
+
+def _remove_local(files: list[str]) -> None:
+    for file in files:
+        if file:
+            while os.path.exists(file):
+                os.remove(file)

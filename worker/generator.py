@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import inspect
 import os
+import inspect
+from pathlib import Path
 import time
 from collections.abc import Callable
 from uuid import uuid4
@@ -16,6 +17,105 @@ os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "max_split_size_mb:512")
 
 ProgressCallback = Callable[[float], None]
 
+def create_images(
+    model_path: Path,
+    prompt: str,
+    num_inference_steps: int,
+    guidance_scale: float,
+    height: int,
+    width: int,
+    num_images_per_prompt: int,
+    tempdir: str,
+    progress_callback: ProgressCallback | None = None,
+) -> list:
+    files = []
+    pipe = DiffusionPipeline.from_pretrained(model_path, dtype=torch.bfloat16, device_map="cuda")
+    progress_kwargs = _build_progress_kwargs(
+        pipe, num_inference_steps=num_inference_steps, progress_callback=progress_callback
+    )
+    response = pipe(
+        prompt=prompt,
+        num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
+        height=height,
+        width=width,
+        num_images_per_prompt=num_images_per_prompt,
+        **progress_kwargs,
+    )
+    for image in response.images:
+        filename = f"{tempdir}/{uuid4()}.png"
+        image.save(filename)
+        files.append(filename)
+    _log(files)
+    return files
+
+
+def create_audios(
+    model_path: Path,
+    prompt: str,
+    num_inference_steps: int,
+    guidance_scale: float,
+    audio_end_in_s: float,
+    num_waveforms_per_prompt: int,
+    tempdir: str,
+    progress_callback: ProgressCallback | None = None,
+) -> list:
+    files = []
+    pipe = DiffusionPipeline.from_pretrained(model_path, dtype=torch.float16, device_map="cuda")
+    progress_kwargs = _build_progress_kwargs(
+        pipe, num_inference_steps=num_inference_steps, progress_callback=progress_callback
+    )
+    pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
+    response = pipe(
+        prompt=prompt,
+        num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
+        audio_end_in_s=audio_end_in_s,
+        num_waveforms_per_prompt=num_waveforms_per_prompt,
+        **progress_kwargs,
+    )
+    for audio in response.audios:
+        filename = f"{tempdir}/{uuid4()}.wav"
+        output = audio.T.float().cpu().numpy()
+        soundfile.write(filename, output, pipe.vae.sampling_rate)
+        files.append(filename)
+    _log(files)
+    return files
+
+
+def create_videos(
+    model_path: Path,
+    prompt: str,
+    num_inference_steps: int,
+    guidance_scale: float,
+    height: int,
+    width: int,
+    num_frames: int,
+    num_videos_per_prompt: int,
+    tempdir: str,
+    progress_callback: ProgressCallback | None = None,
+) -> list:
+    files = []
+    pipe = DiffusionPipeline.from_pretrained(model_path, dtype=torch.bfloat16, device_map="cuda")
+    progress_kwargs = _build_progress_kwargs(
+        pipe, num_inference_steps=num_inference_steps, progress_callback=progress_callback
+    )
+    response = pipe(
+        prompt=prompt,
+        num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
+        height=height,
+        width=width,
+        num_frames=num_frames,
+        num_videos_per_prompt=num_videos_per_prompt,
+        **progress_kwargs,
+    )
+    for video in response.frames:
+        filename = f"{tempdir}/{uuid4()}.mp4"
+        export_to_video(video, filename, fps=16)
+        files.append(filename)
+    _log(files)
+    return files
 
 def _build_progress_kwargs(
     pipe: DiffusionPipeline,
@@ -71,102 +171,3 @@ def _log(value: object) -> None:
     print(f"{value=}")
 
 
-def create_images(
-    model_id: str,
-    prompt: str,
-    num_inference_steps: int,
-    guidance_scale: float,
-    height: int,
-    width: int,
-    num_images_per_prompt: int,
-    tempdir: str,
-    progress_callback: ProgressCallback | None = None,
-) -> list:
-    files = []
-    pipe = DiffusionPipeline.from_pretrained(model_id, dtype=torch.bfloat16, device_map="cuda")
-    progress_kwargs = _build_progress_kwargs(
-        pipe, num_inference_steps=num_inference_steps, progress_callback=progress_callback
-    )
-    response = pipe(
-        prompt=prompt,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        height=height,
-        width=width,
-        num_images_per_prompt=num_images_per_prompt,
-        **progress_kwargs,
-    )
-    for image in response.images:
-        filename = f"{tempdir}/{uuid4()}.png"
-        image.save(filename)
-        files.append(filename)
-    _log(files)
-    return files
-
-
-def create_audios(
-    model_id: str,
-    prompt: str,
-    num_inference_steps: int,
-    guidance_scale: float,
-    audio_end_in_s: float,
-    num_waveforms_per_prompt: int,
-    tempdir: str,
-    progress_callback: ProgressCallback | None = None,
-) -> list:
-    files = []
-    pipe = DiffusionPipeline.from_pretrained(model_id, dtype=torch.float16, device_map="cuda")
-    progress_kwargs = _build_progress_kwargs(
-        pipe, num_inference_steps=num_inference_steps, progress_callback=progress_callback
-    )
-    pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config)
-    response = pipe(
-        prompt=prompt,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        audio_end_in_s=audio_end_in_s,
-        num_waveforms_per_prompt=num_waveforms_per_prompt,
-        **progress_kwargs,
-    )
-    for audio in response.audios:
-        filename = f"{tempdir}/{uuid4()}.wav"
-        output = audio.T.float().cpu().numpy()
-        soundfile.write(filename, output, pipe.vae.sampling_rate)
-        files.append(filename)
-    _log(files)
-    return files
-
-
-def create_videos(
-    model_id: str,
-    prompt: str,
-    num_inference_steps: int,
-    guidance_scale: float,
-    height: int,
-    width: int,
-    num_frames: int,
-    num_videos_per_prompt: int,
-    tempdir: str,
-    progress_callback: ProgressCallback | None = None,
-) -> list:
-    files = []
-    pipe = DiffusionPipeline.from_pretrained(model_id, dtype=torch.bfloat16, device_map="cuda")
-    progress_kwargs = _build_progress_kwargs(
-        pipe, num_inference_steps=num_inference_steps, progress_callback=progress_callback
-    )
-    response = pipe(
-        prompt=prompt,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        height=height,
-        width=width,
-        num_frames=num_frames,
-        num_videos_per_prompt=num_videos_per_prompt,
-        **progress_kwargs,
-    )
-    for video in response.frames:
-        filename = f"{tempdir}/{uuid4()}.mp4"
-        export_to_video(video, filename, fps=16)
-        files.append(filename)
-    _log(files)
-    return files

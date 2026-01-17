@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, List
 
 from worker.generator import create_audios, create_images, create_videos
@@ -9,38 +10,37 @@ ProgressCallback = Callable[[float], None]
 
 
 class ModelHandler:
-    _instance: "ModelHandler | None" = None
+    def __init__(self, model_id: str, model_type: str, models_root: Path):
+        self.model_id = model_id
+        self.model_type = model_type
+        self.models_root = models_root
+        self.handler = self._get_handler(model_type)
 
-    def __new__(cls) -> "ModelHandler":
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._handlers = {
-                "FLUX.1-dev": cls._instance._handle_text_to_image,
-                "FLUX.2-dev": cls._instance._handle_text_to_image,
-                "stable-audio-open-1.0": cls._instance._handle_text_to_audio,
-                "Wan2.1-T2V-1.3B-Diffusers": cls._instance._handle_text_to_video,
-                "Wan2.1-T2V-14B-Diffusers": cls._instance._handle_text_to_video,
-                "Wan2.2-T2V-A14B-Diffusers": cls._instance._handle_text_to_video,
-                "Wan2.2-TI2V-5B-Diffusers": cls._instance._handle_text_to_video,
-            }
-        return cls._instance
 
     def handle(
-        self, model_id: str, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None
+        self, payload: dict[str, Any], tempdir: str, progress_callback: ProgressCallback | None = None
     ) -> List[str]:
-        handler = self._handlers.get(model_id, self._handle_text_to_image)
-        return handler(model_id=model_id, payload=payload, tempdir=tempdir, progress_callback=progress_callback)
+        model_path = self.models_root / self.model_type / self.model_id
+        return self.handler(model_path=model_path, payload=payload, tempdir=tempdir, progress_callback=progress_callback)
+
+    def _get_handler(self, model_type: str) -> Callable:
+        match model_type:
+            case "text_to_image":
+                return self._handle_text_to_image
+            case "text_to_audio":
+                return self._handle_text_to_audio
+            case "text_to_video":
+                return self._handle_text_to_video
 
     def _handle_text_to_image(
         self,
-        model_id: str,
+        model_path: Path,
         payload: dict[str, Any],
         tempdir: str,
         progress_callback: ProgressCallback | None = None,
-        model_dir: str = "/models/text_to_image",
     ) -> List[str]:
         return create_images(
-            model_id=f"{model_dir}/{model_id}",
+            model_path=model_path,
             prompt=payload.get("prompt", ""),
             num_inference_steps=payload.get("num_inference_steps", 10) or 10,
             guidance_scale=payload.get("guidance_scale", 3.5) or 3.5,
@@ -53,14 +53,13 @@ class ModelHandler:
 
     def _handle_text_to_video(
         self,
-        model_id: str,
+        model_path: Path,
         payload: dict[str, Any],
         tempdir: str,
         progress_callback: ProgressCallback | None = None,
-        model_dir: str = "/models/text_to_video",
     ) -> List[str]:
         return create_videos(
-            model_id=f"{model_dir}/{model_id}",
+            model_path=model_path,
             prompt=payload.get("prompt", ""),
             num_inference_steps=payload.get("num_inference_steps", 10) or 10,
             guidance_scale=payload.get("guidance_scale", 3.5) or 3.5,
@@ -74,14 +73,13 @@ class ModelHandler:
 
     def _handle_text_to_audio(
         self,
-        model_id: str,
+        model_path: Path,
         payload: dict[str, Any],
         tempdir: str,
         progress_callback: ProgressCallback | None = None,
-        model_dir: str = "/models/text_to_audio",
     ) -> List[str]:
         return create_audios(
-            model_id=f"{model_dir}/{model_id}",
+            model_path=model_path,
             prompt=payload.get("prompt", ""),
             num_inference_steps=payload.get("num_inference_steps", 10) or 10,
             guidance_scale=payload.get("guidance_scale", 3.5) or 3.5,
