@@ -4,15 +4,16 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, List
 
-from worker.generator import create_audios, create_images, create_videos
+from worker.executors.image import create_images
+from worker.executors.audio import create_audios
+from worker.executors.video import create_videos
 
 ProgressCallback = Callable[[float], None]
 
 
 class ModelHandler:
     def handle(self, payload: dict[str, Any]) -> List[str]:
-        model_type = payload.get("model_type", "unknown")
-        handler = self._get_handler(model_type)
+        handler = self._get_handler(model_type=payload.get("model_type", "unknown"))
         return handler(payload=payload)
 
     def _get_handler(self, model_type: str) -> Callable:
